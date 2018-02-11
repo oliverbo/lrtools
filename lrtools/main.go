@@ -1,11 +1,16 @@
 package main
 
 import (
-	"fmt"
 	"github.com/oliverbo/lrtools/lrdb"
+	"fmt"
 )
 
 func main() {
-	fmt.Println("Hello!")
-	lrdb.Test()
+	lrdb.LoadData()
+
+	root := lrdb.GetCollectionRoot()
+	v := func(c *lrdb.Collection) {
+		fmt.Printf(c.Name)
+	}
+	root.VisitChildren(v)
 }
