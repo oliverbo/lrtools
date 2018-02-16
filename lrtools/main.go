@@ -9,8 +9,8 @@ func main() {
 	lrdb.LoadData()
 
 	root := lrdb.GetCollectionRoot()
-	v := func(c *lrdb.Collection) {
+
+	root.VisitChildren(func(c *lrdb.Collection) {
 		fmt.Printf(c.Name)
-	}
-	root.VisitChildren(v)
+	})
 }

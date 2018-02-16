@@ -3,7 +3,7 @@ package lrdb
 // Collection describes a Lightroom collection by its name
 type Collection struct {
 	Name string
-	localId int
+	localId int64
 	parent *Collection
 	nextSibling *Collection
 	first *Collection
@@ -13,19 +13,20 @@ type Collection struct {
 const CollectionRootId  = -1
 
 var root *Collection
-var index map[int] *Collection
+var index map[int64] *Collection
 
 // init initializes the collection tree
 func init() {
-	index = make(map[int] *Collection)
+	index = make(map[int64] *Collection)
 	root = new(Collection)
 	root.localId = CollectionRootId
 	root.Name = "ROOT"
+	index[CollectionRootId] = root
 }
 
 // GetCollectionById returns the collection with the ID 'localId'. If this collection does not yet exist,
 // a new record will be created
-func GetCollectionById(localId int) *Collection {
+func GetCollectionById(localId int64) *Collection {
 	c, ok := index[localId]
 	if !ok {
 		c = new(Collection)

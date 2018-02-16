@@ -6,14 +6,16 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
+type RowLoader interface {
+	Next() bool
+	Scan(dest ...interface{}) error
+}
+
 func LoadData() {
 	loadCollections()
 }
 
 func loadCollections() {
-	var name string
-	var localId int
-	var parent int
 
 	db, err := sql.Open("sqlite3", "/Volumes/Claire/Photo/Photos 2015/Photos 2015-2.lrcat")
 	if err != nil {
@@ -29,6 +31,14 @@ func loadCollections() {
 		log.Fatal(err)
 	}
 	defer rows.Close()
+	buildCollectionTree(rows)
+}
+
+func buildCollectionTree(rows RowLoader) {
+	var name string
+	var localId int64
+	var parent sql.NullInt64
+
 	for rows.Next() {
 		err := rows.Scan(&localId, &name, &parent)
 		if err != nil {
@@ -41,7 +51,14 @@ func loadCollections() {
 
 		// Put it in the right place
 		var p *Collection
-		p = GetCollectionById(parent)
+		var parentId int64
+		if parent.Valid {
+			parentId = parent.Int64
+		} else {
+			parentId = CollectionRootId
+		}
+
+		p = GetCollectionById(parentId)
 		p.AppendChild(c)
 	}
 }
