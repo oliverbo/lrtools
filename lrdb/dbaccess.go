@@ -17,7 +17,7 @@ func LoadData() {
 
 func loadCollections() {
 
-	db, err := sql.Open("sqlite3", "/Volumes/Claire/Photo/Photos 2015/Photos 2015-2.lrcat")
+	db, err := sql.Open("sqlite3", Config.DbPath)
 	if err != nil {
 		log.Fatal(err)
 	}
