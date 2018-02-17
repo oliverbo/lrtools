@@ -1,5 +1,7 @@
 package lrdb
 
+import "container/list"
+
 // Collection describes a Lightroom collection by its name
 type Collection struct {
 	Name string
@@ -57,4 +59,20 @@ func (c *Collection) VisitChildren(v func(c *Collection)) {
 	for f := c.first; f != nil; f = f.nextSibling {
 		v(f)
 	}
+}
+
+func (c Collection) Path() string {
+	var names list.List
+	names.PushBack(c.Name)
+	for p := c.parent; p != nil; p = p.parent {
+		if p.localId != CollectionRootId {
+			names.PushBack(p.Name)
+		}
+	}
+	var path string
+	for e := names.Back(); e != nil; e = e.Prev() {
+		path = path + "/" + e.Value.(string)
+	}
+
+	return path
 }

@@ -69,3 +69,21 @@ func TestCollection_VisitChildren(t *testing.T) {
 		t.Errorf("Vistor failed (%s)", visited)
 	}
 }
+
+func TestCollection_Path(t *testing.T) {
+	root := Collection{localId:CollectionRootId, Name: "ROOT"}
+	c1 := Collection{localId:1, Name: "Level 1"}
+	c2 := Collection{localId:2, Name: "Level 2"}
+	c3 := Collection{localId:3, Name: "Level 3"}
+	c4 := Collection{localId:4, Name: "Level 4"}
+	root.AppendChild(&c1)
+	c1.AppendChild(&c2)
+	c2.AppendChild(&c3)
+	c3.AppendChild(&c4)
+
+	path := c4.Path()
+
+	if path != "/Level 1/Level 2/Level 3/Level 4" {
+		t.Errorf("Incorrect collection path: '%s'", path)
+	}
+}

@@ -40,6 +40,6 @@ func listCollection() {
 	root := lrdb.GetCollectionRoot()
 
 	root.VisitChildren(func(c *lrdb.Collection) {
-		fmt.Println(c.Name)
+		fmt.Println(c.Path())
 	})
 }
