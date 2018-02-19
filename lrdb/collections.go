@@ -1,6 +1,9 @@
 package lrdb
 
-import "container/list"
+import (
+	"container/list"
+	"strings"
+)
 
 // Collection describes a Lightroom collection by its name
 type Collection struct {
@@ -13,6 +16,7 @@ type Collection struct {
 }
 
 const CollectionRootId  = -1
+const PathSeparator = "/"
 
 var root *Collection
 var index map[int64] *Collection
@@ -38,9 +42,37 @@ func GetCollectionById(localId int64) *Collection {
 	return c
 }
 
+// GetCollectionByPath returns the collection with the supplied absolute path in the /name/name/.../name format
+func GetCollectionByPath(path string) *Collection {
+	names := strings.Split(path, PathSeparator)
+
+	var c *Collection
+	for _, n := range names {
+		if n != "" {
+			c = c.FindChildByName(n)
+			if c == nil {
+				break
+			}
+		} else {
+			c = GetCollectionRoot()
+		}
+	}
+
+	return c
+}
+
 // GetCollectionRoot returns the root of the collection tree
 func GetCollectionRoot() *Collection {
 	return root
+}
+
+func (c Collection) FindChildByName(name string) *Collection {
+	for cc := c.first; cc != nil; cc = cc.nextSibling {
+		if cc.Name == name {
+			return cc
+		}
+	}
+	return nil
 }
 
 // AppendChild appends a new child 'child' to the collection
@@ -71,7 +103,7 @@ func (c Collection) Path() string {
 	}
 	var path string
 	for e := names.Back(); e != nil; e = e.Prev() {
-		path = path + "/" + e.Value.(string)
+		path = path + PathSeparator + e.Value.(string)
 	}
 
 	return path

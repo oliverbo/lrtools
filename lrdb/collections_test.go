@@ -2,7 +2,7 @@ package lrdb
 
 import "testing"
 
-func TestGetCollectionById(t *testing.T) {
+func TestFindCollectionById(t *testing.T) {
 	// Create new collection
 	c := GetCollectionById(5)
 	if c == nil {
@@ -21,6 +21,42 @@ func TestGetCollectionById(t *testing.T) {
 	}
 	if c.localId != 5 || c.Name != "Test" {
 		t.Errorf("Incorrect values %d, %s", c.localId, c.Name)
+	}
+}
+
+func TestFindCollectionByPath(t *testing.T) {
+	root = &Collection{localId:CollectionRootId, Name: "ROOT"}
+	c1 := Collection{localId:1, Name: "Level 1"}
+	c2 := Collection{localId:2, Name: "Level 2"}
+	c3 := Collection{localId:3, Name: "Level 3"}
+	c4 := Collection{localId:4, Name: "Level 4"}
+	root.AppendChild(&c1)
+	c1.AppendChild(&c2)
+	c2.AppendChild(&c3)
+	c3.AppendChild(&c4)
+
+	c := GetCollectionByPath("/Level 1/Level 2")
+	if c == nil {
+		t.Error("No collection returned")
+	} else if c != &c2 {
+		t.Errorf("1: Incorrect collection found %d", c.localId)
+	}
+}
+
+func TestCollection_FindChildByName(t *testing.T) {
+	root = &Collection{localId:1, Name:"Parent"}
+	c1 := Collection{localId:2, Name:"Child1"}
+	c2 := Collection{localId:3, Name:"Child2"}
+	c3 := Collection{localId:4, Name:"Child3"}
+	root.AppendChild(&c1)
+	root.AppendChild(&c2)
+	root.AppendChild(&c3)
+
+	cc := root.FindChildByName("Child2")
+	if cc == nil {
+		t.Error("1: No collection found")
+	} else if cc != &c2 {
+		t.Errorf("1: Incorrect collection found %d", cc.localId)
 	}
 }
 
@@ -71,7 +107,7 @@ func TestCollection_VisitChildren(t *testing.T) {
 }
 
 func TestCollection_Path(t *testing.T) {
-	root := Collection{localId:CollectionRootId, Name: "ROOT"}
+	root = &Collection{localId:CollectionRootId, Name: "ROOT"}
 	c1 := Collection{localId:1, Name: "Level 1"}
 	c2 := Collection{localId:2, Name: "Level 2"}
 	c3 := Collection{localId:3, Name: "Level 3"}
@@ -84,6 +120,11 @@ func TestCollection_Path(t *testing.T) {
 	path := c4.Path()
 
 	if path != "/Level 1/Level 2/Level 3/Level 4" {
-		t.Errorf("Incorrect collection path: '%s'", path)
+		t.Errorf("1: Incorrect collection path: '%s'", path)
+	}
+
+	path = c1.Path()
+	if path != "/Level 1" {
+		t.Errorf("2: Incorrect collection path: '%s'", path)
 	}
 }
