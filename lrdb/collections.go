@@ -30,9 +30,9 @@ func init() {
 	index[CollectionRootId] = root
 }
 
-// GetCollectionById returns the collection with the ID 'localId'. If this collection does not yet exist,
+// FindCollectionById returns the collection with the ID 'localId'. If this collection does not yet exist,
 // a new record will be created
-func GetCollectionById(localId int64) *Collection {
+func FindCollectionById(localId int64) *Collection {
 	c, ok := index[localId]
 	if !ok {
 		c = new(Collection)
@@ -42,19 +42,17 @@ func GetCollectionById(localId int64) *Collection {
 	return c
 }
 
-// GetCollectionByPath returns the collection with the supplied absolute path in the /name/name/.../name format
-func GetCollectionByPath(path string) *Collection {
+// FindCollectionByPath returns the collection with the supplied absolute path in the /name/name/.../name format
+func FindCollectionByPath(path string) *Collection {
 	names := strings.Split(path, PathSeparator)
 
-	var c *Collection
+	c := GetCollectionRoot()
 	for _, n := range names {
 		if n != "" {
 			c = c.FindChildByName(n)
 			if c == nil {
 				break
 			}
-		} else {
-			c = GetCollectionRoot()
 		}
 	}
 
@@ -87,9 +85,14 @@ func (c *Collection) AppendChild(child *Collection) {
 	child.parent = c
 }
 
-func (c *Collection) VisitChildren(v func(c *Collection)) {
+func (c *Collection) VisitChildren(level int, includeParent bool, v func(level int, c *Collection)) {
 	for f := c.first; f != nil; f = f.nextSibling {
-		v(f)
+		if includeParent || level == 1 {
+			v(level, f)
+		}
+		if level > 1 {
+			f.VisitChildren(level-1, includeParent, v)
+		}
 	}
 }
 

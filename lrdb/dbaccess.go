@@ -46,7 +46,7 @@ func buildCollectionTree(rows RowLoader) {
 		}
 
 		// Initialize collection record
-		c := GetCollectionById(localId)
+		c := FindCollectionById(localId)
 		c.Name = name
 
 		// Put it in the right place
@@ -58,7 +58,7 @@ func buildCollectionTree(rows RowLoader) {
 			parentId = CollectionRootId
 		}
 
-		p = GetCollectionById(parentId)
+		p = FindCollectionById(parentId)
 		p.AppendChild(c)
 	}
 }

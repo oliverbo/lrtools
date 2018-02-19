@@ -4,7 +4,7 @@ import "testing"
 
 func TestFindCollectionById(t *testing.T) {
 	// Create new collection
-	c := GetCollectionById(5)
+	c := FindCollectionById(5)
 	if c == nil {
 		t.Error("No collection pointer returned")
 	}
@@ -15,7 +15,7 @@ func TestFindCollectionById(t *testing.T) {
 
 	// retrieve existing collection
 	c.Name = "Test"
-	c = GetCollectionById(5)
+	c = FindCollectionById(5)
 	if c == nil {
 		t.Error("No collection pointer returned")
 	}
@@ -35,11 +35,25 @@ func TestFindCollectionByPath(t *testing.T) {
 	c2.AppendChild(&c3)
 	c3.AppendChild(&c4)
 
-	c := GetCollectionByPath("/Level 1/Level 2")
+	// Find collection
+	c := FindCollectionByPath("/Level 1/Level 2")
 	if c == nil {
 		t.Error("No collection returned")
 	} else if c != &c2 {
 		t.Errorf("1: Incorrect collection found %d", c.localId)
+	}
+
+	c = FindCollectionByPath("Level 1/Level 2/Level 3")
+	if c == nil {
+		t.Error("No collection returned")
+	} else if c != &c3 {
+		t.Errorf("2: Incorrect collection found %d", c.localId)
+	}
+
+	// Not find collection
+	c = FindCollectionByPath("Invalid")
+	if c != nil {
+		t.Error("3: Should have returned nil")
 	}
 }
 
@@ -57,6 +71,11 @@ func TestCollection_FindChildByName(t *testing.T) {
 		t.Error("1: No collection found")
 	} else if cc != &c2 {
 		t.Errorf("1: Incorrect collection found %d", cc.localId)
+	}
+
+	cc = root.FindChildByName("Invalid")
+	if cc != nil {
+		t.Error("2: Should have returned nil")
 	}
 }
 
@@ -89,20 +108,46 @@ func TestCollection_AppendChild(t *testing.T) {
 }
 
 func TestCollection_VisitChildren(t *testing.T) {
-	c := Collection{localId:1, Name:"Parent"}
+	root = &Collection{localId:1, Name:"Root"}
 	c1 := Collection{localId:2, Name:"Child1"}
 	c2 := Collection{localId:3, Name:"Child2"}
 	c3 := Collection{localId:4, Name:"Child3"}
-	c.AppendChild(&c1)
-	c.AppendChild(&c2)
-	c.AppendChild(&c3)
+	c11 := Collection{localId:11, Name:"Child1-1"}
+	c12 := Collection{localId:11, Name:"Child1-2"}
+	c121 := Collection{localId:11, Name:"Child1-2-1"}
+	c13 := Collection{localId:11, Name:"Child1-3"}
+	root.AppendChild(&c1)
+	c1.AppendChild(&c11)
+	c1.AppendChild(&c12)
+	c12.AppendChild(&c121)
+	c1.AppendChild(&c13)
+	root.AppendChild(&c2)
+	root.AppendChild(&c3)
 
 	var visited string
-	f := func(c *Collection) {visited += c.Name}
-	c.VisitChildren(f)
-
+	f := func(l int, c *Collection) {visited += c.Name}
+	// One level
+	root.VisitChildren(1, true, f)
 	if visited != "Child1Child2Child3" {
-		t.Errorf("Vistor failed (%s)", visited)
+		t.Errorf("1: Vistor failed (%s)", visited)
+	}
+	// Two Levels
+	visited = ""
+	root.VisitChildren(2, true, f)
+	if visited != "Child1Child1-1Child1-2Child1-3Child2Child3" {
+		t.Errorf("2: Vistor failed (%s)", visited)
+	}
+	// Two Levels, one down
+	visited = ""
+	c1.VisitChildren(2, true, f)
+	if visited != "Child1-1Child1-2Child1-2-1Child1-3" {
+		t.Errorf("3: Vistor failed (%s)", visited)
+	}
+	// Two Levels, don't include parent
+	visited = ""
+	root.VisitChildren(2, false, f)
+	if visited != "Child1-1Child1-2Child1-3" {
+		t.Errorf("4: Vistor failed (%s)", visited)
 	}
 }
 

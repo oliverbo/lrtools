@@ -34,33 +34,33 @@ func TestBuildCollectionTree(t *testing.T) {
 	root := GetCollectionRoot()
 
 	var idstring string
-	f := func(c *Collection) {
+	f := func(l int, c *Collection) {
 		idstring += strconv.FormatInt(c.localId, 10)
 	}
-	root.VisitChildren(f)
+	root.VisitChildren(1, false, f)
 	if idstring != "12" {
 		t.Errorf("First level incorrect (%s)", idstring)
 	}
 
 	var c *Collection
 
-	c = GetCollectionById(1)
+	c = FindCollectionById(1)
 	idstring = ""
-	c.VisitChildren(f)
+	c.VisitChildren(1, false, f)
 	if idstring != "34" {
 		t.Errorf("Second level '1' incorrect (%s)", idstring)
 	}
 
-	c = GetCollectionById(2)
+	c = FindCollectionById(2)
 	idstring = ""
-	c.VisitChildren(f)
+	c.VisitChildren(1, false, f)
 	if idstring != "56" {
 		t.Errorf("Second level '2' incorrect (%s)", idstring)
 	}
 
-	c = GetCollectionById(5)
+	c = FindCollectionById(5)
 	idstring = ""
-	c.VisitChildren(f)
+	c.VisitChildren(1, false, f)
 	if idstring != "7" {
 		t.Errorf("Third level '5' incorrect (%s)", idstring)
 	}
